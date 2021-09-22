@@ -56,7 +56,7 @@
 
     s4d.client.on('interactionCreate', async (interaction) => {
         let member = interaction.guild.members.cache.get(interaction.member.user.id)
-        if ((interaction.commandName) == 'teslacommandnew') {
+        if ((interaction.commandName) == 'teslacommand') {
             if ((interaction.options.getString('interface')) == 'menus') {
                 await interaction.reply({
                     content: 'Follow the Instructions to get started:',
