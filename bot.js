@@ -1,20 +1,32 @@
 (async () => {
-    const Discord = require("discord.js");
-    const Database = require("easy-json-database");
-    const moment = require('moment');
-    const {
+    let DIG = require("discord-image-generation")
+    let Discord = require("discord.js")
+    let Database = require("easy-json-database")
+    let logs = require("discord-logs")
+    let moment = require("moment")
+    let {
         DB
     } = require("quickmongo");
-    const canvas = require("discord-canvas")
-    const {
+    let canvas = require("discord-canvas")
+    const Images = require("discord-images")
+    const images = new Images.Client()
+    let {
         MessageEmbed,
         MessageButton,
         MessageActionRow,
         Intents,
         Permissions,
         MessageSelectMenu
-    } = require('discord.js')
-    const https = require("https");
+    } = require("discord.js")
+    let https = require("https")
+    let {
+        GiveawaysManager
+    } = require("discord-giveaways")
+    let ytnotifier = require("youtube-notification-module")
+    let {
+        Player,
+        QueueRepeatMode
+    } = require("discord-player")
     const devMode = typeof __E_IS_DEV !== "undefined" && __E_IS_DEV;
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const s4d = {
@@ -25,6 +37,11 @@
         tokenInvalid: false,
         tokenError: null,
         player: null,
+        manager: null,
+        notifer: new ytnotifier({
+            channels: [],
+            checkInterval: 50
+        }),
         checkMessageExists() {
             if (!s4d.client) throw new Error('You cannot perform message operations without a Discord.js client')
             if (!s4d.client.readyTimestamp) throw new Error('You cannot perform message operations while the bot is not connected to the Discord API')
@@ -34,10 +51,16 @@
         intents: [Object.values(s4d.Discord.Intents.FLAGS).reduce((acc, p) => acc | p, 0)],
         partials: ["REACTION"]
     });
-    const {
-        Player,
-        QueueRepeatMode
-    } = require("discord-player")
+    logs(s4d.client);
+    s4d.manager = new GiveawaysManager(s4d.client, {
+        storage: './giveaways.json',
+        default: {
+            botsCanWin: false,
+            embedColor: '#FF0000',
+            embedColorEnd: '#000000',
+            reaction: '🎉'
+        }
+    });
     s4d.player = new Player(s4d.client)
 
     function colourRgb(r, g, b) {
@@ -49,8 +72,6 @@
         b = ('0' + (Math.round(b) || 0).toString(16)).slice(-2);
         return '#' + r + g + b;
     }
-
-
     await s4d.client.login(process.env.TOKEN).catch((e) => {
         s4d.tokenInvalid = true;
         s4d.tokenError = e;
